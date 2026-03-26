@@ -45,23 +45,24 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const status = "${{ steps.python-tests.outputs.pytest_status }}";
-            const message = status === 'success' ? '✅ Ваши тесты прошли успешно.' : '❌ Тесты не прошли.';
-            if (github.context.payload.pull_request) {
-              const issue_number = github.context.payload.pull_request.number;
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number,
-                body: message
-              });
-            } else {
-              await github.rest.repos.createCommitStatus({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                sha: context.sha,
-                state: status === 'success' ? 'success' : 'failure',
-                description: message,
-                context: 'CI/pytest'
-              });
-            }
+              const status = "${{ steps.python-tests.outputs.pytest_status }}";
+              const message = status === 'success' ? '✅ Ваши тесты прошли успешно.' : '❌ Тесты не прошли.';
+              const payload = context && context.payload ? context.payload : {};
+              if (payload.pull_request) {
+                const issue_number = payload.pull_request.number;
+                await github.rest.issues.createComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number,
+                  body: message
+                });
+              } else {
+                await github.rest.repos.createCommitStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  sha: context.sha || process.env.GITHUB_SHA,
+                  state: status === 'success' ? 'success' : 'failure',
+                  description: message,
+                  context: 'CI/pytest'
+                });
+              }
