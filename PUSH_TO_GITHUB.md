@@ -38,3 +38,21 @@ gh repo create <repo-name> --public --source=. --remote=origin --push
 6) Примечания:
 - Если хотите, чтобы workflow запускал дополнительные проверки (например `npm test`), добавьте скрипты в `package.json`.
 - Если нужно, могу настроить детальные отчёты или включить уведомления в Telegram/Slack.
+
+7) PAT (Personal Access Token) и секрет `GH_PAT` (обязательно для комментариев/статусов)
+
+- Если workflow по-прежнему получает ошибку `Resource not accessible by integration`, создайте PAT с правами `repo` (и `workflow`, если нужно):
+
+  1. GitHub → Settings → Developer settings → Personal access tokens → Generate new token
+  2. Выберите `repo` и `workflow` (если нужно), создайте токен и скопируйте его.
+
+- Добавьте токен в secrets репозитория:
+
+```bash
+gh auth login
+gh secret set GH_PAT --body "<your-token>"
+```
+
+Или через UI: Repository → Settings → Secrets and variables → Actions → New repository secret → имя `GH_PAT`, значение — токен.
+
+- Workflow теперь использует `secrets.GH_PAT` для создания комментариев и статусов. После добавления секрета — закоммитьте и запушьте изменения, чтобы повторно запустить CI.
